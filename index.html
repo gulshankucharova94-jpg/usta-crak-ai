@@ -5,49 +5,232 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b1224">
-<title>Usta Crak — Slayd yaratuvchi</title>
+<title>Usta Crak — AI Slayd studiyasi</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg">
 
 <style>
-:root{--bg:#0b1224;--panel:#121d35;--text:#f3f6ff;--muted:#aab6d0;--blue:#4da3ff;--line:#2a3b5d}
-*{box-sizing:border-box}
-body{margin:0;background:linear-gradient(145deg,#09101f,#111d37);color:var(--text);font:16px/1.5 system-ui,Arial,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px max(18px,calc((100% - 1120px)/2));border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:1.25rem}
-.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#2676ff,#64d4ff);color:#061126;font-weight:1000}
-.wrap{max-width:1120px;margin:auto;padding:28px 18px 60px}
-.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px}
-.panel{background:#121d35f2;border:1px solid var(--line);border-radius:22px;padding:24px;min-width:0}
-h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:10px 0 16px}
-.muted{color:var(--muted)}
-.pill{display:inline-block;border:1px solid #36517e;border-radius:999px;padding:5px 10px;color:#b9d8ff;font-size:.85rem}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
-.stat{background:#182746;border-radius:14px;padding:14px}
-.stat b{display:block;font-size:1.3rem}
-label{display:block;font-weight:700;margin:12px 0 6px}
-input,textarea{width:100%;padding:12px 13px;border-radius:11px;border:1px solid var(--line);background:#0b1428;color:var(--text);font:inherit}
-textarea{min-height:90px;resize:vertical}
-button{cursor:pointer;border:0;border-radius:11px;padding:11px 15px;font:inherit;font-weight:800;background:var(--blue);color:#061126}
-button:disabled{opacity:.5;cursor:not-allowed}
-button.secondary{background:#263957;color:var(--text);border:1px solid #3b5278}
-button.danger{background:#5a2938;color:white}
-.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
-.slides{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
-.deck{position:relative;background:linear-gradient(135deg,#1e4d88,#111b32);border:1px solid #5279ac;border-radius:15px;padding:18px 17px 25px;overflow:hidden}
-.deck h3{margin:8px 0}
-.deck p{color:#d6e5ff;white-space:pre-wrap;overflow-wrap:anywhere}
-.watermark{position:absolute;bottom:8px;right:10px;font-size:10px;font-weight:900;color:#dcecffb8}
-.empty{padding:30px;text-align:center;border:1px dashed #3a5078;border-radius:16px;color:var(--muted);grid-column:1/-1}
-.notice{margin-top:18px;border-left:3px solid #f5c451;padding:10px 14px;background:#292515;color:#f6e8b5;border-radius:0 10px 10px 0;font-size:.9rem}
-.status{min-height:24px;overflow-wrap:anywhere}
-.error{color:#ff8d9b}
-.success{color:#77e0b5}
-.hidden{display:none!important}
-.account{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-footer{text-align:center;padding:20px;color:var(--muted);font-size:.9rem}
-@media(max-width:760px){.hero{grid-template-columns:1fr}.wrap{padding-top:18px}.panel{padding:18px}}
-@media(max-width:420px){.stats{grid-template-columns:1fr}}
+:root {
+  --bg:#0b1224;
+  --panel:#121d35;
+  --text:#f3f6ff;
+  --muted:#aab6d0;
+  --blue:#4da3ff;
+  --line:#2a3b5d;
+}
+* { box-sizing:border-box }
+body {
+  margin:0;
+  background:linear-gradient(145deg,#09101f,#111d37);
+  color:var(--text);
+  font:16px/1.5 system-ui,Arial,sans-serif;
+}
+header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  padding:18px max(18px,calc((100% - 1120px)/2));
+  border-bottom:1px solid var(--line);
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:900;
+  font-size:1.25rem;
+}
+.logo {
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:linear-gradient(135deg,#2676ff,#64d4ff);
+  color:#061126;
+  font-weight:1000;
+}
+.wrap {
+  max-width:1120px;
+  margin:auto;
+  padding:28px 18px 60px;
+}
+.hero {
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  gap:22px;
+}
+.panel {
+  background:#121d35f2;
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:24px;
+  min-width:0;
+}
+h1 {
+  font-size:clamp(2rem,5vw,3.5rem);
+  line-height:1.05;
+  margin:10px 0 16px;
+}
+.muted { color:var(--muted) }
+.pill {
+  display:inline-block;
+  border:1px solid #36517e;
+  border-radius:999px;
+  padding:5px 10px;
+  color:#b9d8ff;
+  font-size:.85rem;
+}
+.stats {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:22px;
+}
+.stat {
+  background:#182746;
+  border-radius:14px;
+  padding:14px;
+}
+.stat b {
+  display:block;
+  font-size:1.3rem;
+}
+label {
+  display:block;
+  font-weight:700;
+  margin:12px 0 6px;
+}
+input,textarea {
+  width:100%;
+  padding:12px 13px;
+  border-radius:11px;
+  border:1px solid var(--line);
+  background:#0b1428;
+  color:var(--text);
+  font:inherit;
+}
+textarea { min-height:90px;resize:vertical }
+button {
+  cursor:pointer;
+  border:0;
+  border-radius:11px;
+  padding:11px 15px;
+  font:inherit;
+  font-weight:800;
+  background:var(--blue);
+  color:#061126;
+}
+button:disabled { opacity:.5;cursor:not-allowed }
+button.secondary {
+  background:#263957;
+  color:var(--text);
+  border:1px solid #3b5278;
+}
+button.danger { background:#5a2938;color:white }
+.actions {
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+.slides {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:14px;
+  margin-top:18px;
+}
+.deck {
+  position:relative;
+  background:linear-gradient(145deg,#152b4b,#111b32);
+  border:1px solid #38577e;
+  border-radius:18px;
+  padding:17px;
+  min-width:0;
+  overflow:hidden;
+}
+.deck h3 { margin:8px 0 }
+.deck p {
+  color:#d6e5ff;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.deck-cover {
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  border-radius:12px;
+  margin-top:12px;
+  background:#0b1428;
+}
+.slide-preview {
+  border-top:1px solid #2a3b5d;
+  margin-top:16px;
+  padding-top:12px;
+}
+.slide-preview img {
+  display:block;
+  width:100%;
+  max-height:190px;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  border-radius:10px;
+  margin:10px 0;
+  background:#0b1428;
+}
+.slide-preview h4 { margin:12px 0 4px }
+.watermark {
+  position:absolute;
+  bottom:8px;
+  right:10px;
+  font-size:10px;
+  font-weight:900;
+  color:#dcecffb8;
+  pointer-events:none;
+}
+.empty {
+  padding:30px;
+  text-align:center;
+  border:1px dashed #3a5078;
+  border-radius:16px;
+  color:var(--muted);
+  grid-column:1/-1;
+}
+.notice {
+  margin-top:18px;
+  border-left:3px solid #f5c451;
+  padding:10px 14px;
+  background:#292515;
+  color:#f6e8b5;
+  border-radius:0 10px 10px 0;
+  font-size:.9rem;
+}
+.status { min-height:24px;overflow-wrap:anywhere }
+.error { color:#ff8d9b }
+.success { color:#77e0b5 }
+.hidden { display:none!important }
+.account {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+footer {
+  text-align:center;
+  padding:20px;
+  color:var(--muted);
+  font-size:.9rem;
+}
+@media(max-width:760px) {
+  .hero { grid-template-columns:1fr }
+  .wrap { padding-top:18px }
+  .panel { padding:18px }
+}
+@media(max-width:420px) {
+  .stats { grid-template-columns:1fr }
+  .actions button { max-width:100% }
+}
 </style>
 </head>
 
@@ -57,18 +240,21 @@ footer{text-align:center;padding:20px;color:var(--muted);font-size:.9rem}
   <div class="account">
     <span id="userEmail" class="muted hidden"></span>
     <button id="logout" class="secondary hidden" type="button">Chiqish</button>
-    <span class="pill">Slayd studiyasi</span>
+    <span class="pill">AI Slayd studiyasi</span>
   </div>
 </header>
 
 <main class="wrap">
 <section id="auth" class="panel">
   <h2>Usta Crak akkaunti</h2>
-  <p class="muted">Ro‘yxatdan o‘ting yoki akkauntingizga kiring. Taqdimotlar bulutda saqlanadi.</p>
+  <p class="muted">Kiring yoki ro‘yxatdan o‘ting. Taqdimotlaringiz bulutda saqlanadi.</p>
+
   <label for="email">Email</label>
   <input id="email" type="email" autocomplete="email" placeholder="siz@example.com">
+
   <label for="password">Parol</label>
   <input id="password" type="password" autocomplete="current-password" placeholder="Kamida 6 ta belgi">
+
   <div class="actions">
     <button id="login" type="button">Kirish</button>
     <button id="signup" class="secondary" type="button">Ro‘yxatdan o‘tish</button>
@@ -79,19 +265,24 @@ footer{text-align:center;padding:20px;color:var(--muted);font-size:.9rem}
 <section id="app" class="hidden">
   <div class="hero" style="margin-top:22px">
     <div class="panel">
-      <span class="pill">Slayd yaratish studiyasi</span>
+      <span class="pill">AI taqdimot yaratuvchi</span>
       <h1>G‘oyangni <span style="color:#64c8ff">slaydga</span> aylantir.</h1>
-      <p class="muted">AI yordamida taqdimot yarating, bulutda saqlang va PDF yoki PowerPoint qilib yuklab oling.</p>
+      <p class="muted">AI bilan taqdimot yarat, rasmlar qo‘sh, bulutda saqla va PDF yoki PowerPoint formatida yuklab ol.</p>
+
       <div class="stats">
         <div class="stat"><b id="count">0/3</b><span class="muted">Taqdimot</span></div>
         <div class="stat"><b>15</b><span class="muted">Slayd / taqdimot</span></div>
-        <div class="stat"><b>Bulut</b><span class="muted">Saqlash</span></div>
+        <div class="stat"><b>AI + Rasm</b><span class="muted">Yaratish</span></div>
       </div>
-      <div class="notice">Mavzuni yozing va AI yordamida 3–15 ta slayd yarating.</div>
+
+      <div class="notice">
+        Mavzuni yozing. AI slaydlarni yaratadi va Wikimedia Commons’dan mavzuga mos rasmlar izlaydi. Ayrim mavzularda mos rasm topilmasligi mumkin.
+      </div>
     </div>
 
     <div class="panel">
       <h2 style="margin-top:0">Yangi taqdimot</h2>
+
       <label for="deckTitle">Taqdimot nomi</label>
       <input id="deckTitle" maxlength="90" placeholder="Masalan: O‘zbekiston tarixi">
 
@@ -108,10 +299,16 @@ footer{text-align:center;padding:20px;color:var(--muted);font-size:.9rem}
 
       <hr style="border-color:#2a3b5d;margin-top:22px">
       <h3>Qo‘lda yaratish</h3>
+
       <label for="slideTitle">Birinchi slayd sarlavhasi</label>
       <input id="slideTitle" maxlength="120" placeholder="Mavzu sarlavhasi">
+
       <label for="slideBody">Matn</label>
-      <textarea id="slideBody" maxlength="1200" placeholder="Slaydga qo‘yiladigan matn..."></textarea>
+      <textarea id="slideBody" maxlength="3000" placeholder="Slaydga qo‘yiladigan matn..."></textarea>
+
+      <label for="manualImage">Rasm URL manzili (ixtiyoriy)</label>
+      <input id="manualImage" type="url" placeholder="https://...">
+
       <div class="actions">
         <button id="create" type="button">+ Taqdimot yaratish</button>
       </div>
@@ -121,13 +318,13 @@ footer{text-align:center;padding:20px;color:var(--muted);font-size:.9rem}
 
   <section style="margin-top:28px">
     <h2>Mening taqdimotlarim</h2>
-    <p class="muted">Taqdimotlaringiz akkauntingizda saqlanadi.</p>
+    <p class="muted">Taqdimotni ko‘ring, yangi slayd qo‘shing yoki fayl qilib yuklab oling.</p>
     <div id="decks" class="slides"></div>
   </section>
 </section>
 </main>
 
-<footer>© <span id="year"></span> Usta Crak · Slaydlaringizga o‘z uslubingizni bering.</footer>
+<footer>© <span id="year"></span> Usta Crak · G‘oyalaringizni chiroyli taqdim eting.</footer>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -137,12 +334,12 @@ const supabase = createClient(
   'sb_publishable_4M60lAVkmJVuNpQOBbyNqA_q3V1Ap9T'
 );
 
-// Cloudflare Worker manzili. Gemini kalitini bu faylga yozmang.
 const AI_API_URL = 'https://usta-crak-ai.gulshankucharova94.workers.dev';
 
 const $ = id => document.getElementById(id);
 let user = null;
 let decks = [];
+let backfillRunning = false;
 
 function status(id, msg = '', kind = '') {
   const e = $(id);
@@ -166,6 +363,7 @@ function sessionUI(u) {
   $('logout').classList.toggle('hidden', !u);
   $('userEmail').classList.toggle('hidden', !u);
   $('userEmail').textContent = u?.email || '';
+
   if (!u) {
     decks = [];
     render();
@@ -175,9 +373,13 @@ function sessionUI(u) {
 async function login() {
   const email = $('email').value.trim();
   const password = $('password').value;
-  if (!email || !password) return status('authStatus', 'Email va parolni kiriting.', 'error');
+
+  if (!email || !password) {
+    return status('authStatus', 'Email va parolni kiriting.', 'error');
+  }
 
   status('authStatus', 'Kirilmoqda…');
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) return status('authStatus', message(error), 'error');
@@ -190,15 +392,20 @@ async function signup() {
   const email = $('email').value.trim();
   const password = $('password').value;
 
-  if (!email || !password) return status('authStatus', 'Email va parolni kiriting.', 'error');
-  if (password.length < 6) return status('authStatus', 'Parol kamida 6 ta belgidan iborat bo‘lsin.', 'error');
+  if (!email || !password) {
+    return status('authStatus', 'Email va parolni kiriting.', 'error');
+  }
+
+  if (password.length < 6) {
+    return status('authStatus', 'Parol kamida 6 ta belgidan iborat bo‘lsin.', 'error');
+  }
 
   status('authStatus', 'Akkaunt yaratilmoqda…');
 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: location.origin }
+    options: { emailRedirectTo: location.origin + location.pathname }
   });
 
   if (error) return status('authStatus', message(error), 'error');
@@ -219,29 +426,50 @@ async function logout() {
   status('authStatus', 'Tizimdan chiqdingiz.', 'success');
 }
 
-async function load() {
-  if (!user) return;
+/* Wikimedia Commons’dan mos rasm izlash */
+async function findSlideImage(title, topic = '') {
+  const query = `${topic} ${title}`.trim();
 
-  status('appStatus', 'Taqdimotlar yuklanmoqda…');
+  try {
+    const url = new URL('https://commons.wikimedia.org/w/api.php');
+    url.search = new URLSearchParams({
+      action: 'query',
+      generator: 'search',
+      gsrsearch: query + ' filetype:bitmap',
+      gsrnamespace: '6',
+      gsrlimit: '10',
+      prop: 'imageinfo',
+      iiprop: 'url',
+      iiurlwidth: '1200',
+      format: 'json',
+      origin: '*'
+    });
 
-  const { data, error } = await supabase
-    .from('presentations')
-    .select('id,title,slides,created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    const response = await fetch(url.toString());
+    if (!response.ok) return '';
 
-  if (error) return status('appStatus', 'Yuklashda xatolik: ' + message(error), 'error');
+    const data = await response.json();
+    const pages = Object.values(data.query?.pages || {});
 
-  decks = (data || []).map(d => ({
-    ...d,
-    slides: Array.isArray(d.slides) ? d.slides : []
-  }));
+    const valid = pages.filter(p => {
+      const info = p.imageinfo?.[0];
+      const src = info?.thumburl || info?.url || '';
+      return /^https:\/\/upload\.wikimedia\.org\//i.test(src)
+        && /\.(jpg|jpeg|png|webp)(?:$|\?)/i.test(src);
+    });
 
-  status('appStatus');
-  render();
+    if (!valid.length) return '';
+
+    const first = valid[0].imageinfo[0];
+    return first.thumburl || first.url || '';
+  } catch (e) {
+    console.warn('Rasm qidirishda xatolik:', e);
+    return '';
+  }
 }
 
 function normalizeSlide(x, i) {
+  x = x || {};
   let body = '';
 
   if (Array.isArray(x.content)) {
@@ -255,10 +483,95 @@ function normalizeSlide(x, i) {
 
   if (x.notes) body += (body ? '\n\n' : '') + 'Izoh: ' + String(x.notes);
 
+  const possibleImage = x.imageUrl || x.image_url || x.image || '';
+
   return {
     title: String(x.title || ('Slayd ' + (i + 1))).slice(0, 120),
-    body: body.slice(0, 3000)
+    body: body.slice(0, 3000),
+    imageUrl: typeof possibleImage === 'string' ? possibleImage : ''
   };
+}
+
+async function withImages(rawSlides, topic) {
+  const slides = rawSlides.slice(0, 15).map(normalizeSlide);
+
+  // Avval AI bergan rasm manzilini ishlatamiz.
+  // Aks holda Wikimedia’dan rasm qidiramiz.
+  await Promise.all(slides.map(async slide => {
+    if (!slide.imageUrl) {
+      slide.imageUrl = await findSlideImage(slide.title, topic);
+    }
+  }));
+
+  return slides;
+}
+
+async function load() {
+  if (!user) return;
+
+  status('appStatus', 'Taqdimotlar yuklanmoqda…');
+
+  const { data, error } = await supabase
+    .from('presentations')
+    .select('id,title,slides,created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return status('appStatus', 'Yuklashda xatolik: ' + message(error), 'error');
+  }
+
+  decks = (data || []).map(d => ({
+    ...d,
+    slides: Array.isArray(d.slides) ? d.slides.map(normalizeSlide) : []
+  }));
+
+  status('appStatus');
+  render();
+
+  // Eski, rasmsiz taqdimotlar uchun ham rasm qidirib,
+  // topilgan manzillarni Supabase’da saqlashga harakat qilamiz.
+  backfillOldDecks();
+}
+
+async function backfillOldDecks() {
+  if (!user || backfillRunning) return;
+  backfillRunning = true;
+
+  try {
+    const snapshot = decks.map(d => ({ ...d, slides: [...d.slides] }));
+
+    for (const d of snapshot) {
+      if (!user) break;
+
+      let changed = false;
+
+      for (const slide of d.slides) {
+        if (!slide.imageUrl) {
+          slide.imageUrl = await findSlideImage(slide.title, d.title);
+          if (slide.imageUrl) changed = true;
+        }
+      }
+
+      if (changed) {
+        const { error } = await supabase
+          .from('presentations')
+          .update({ slides: d.slides })
+          .eq('id', d.id)
+          .eq('user_id', user.id);
+
+        if (!error) {
+          const current = decks.find(x => x.id === d.id);
+          if (current) current.slides = d.slides;
+          render();
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Eski taqdimotlarga rasm qo‘shilmadi:', e);
+  } finally {
+    backfillRunning = false;
+  }
 }
 
 async function generateAI() {
@@ -268,7 +581,9 @@ async function generateAI() {
   const n = Math.max(3, Math.min(15, Number($('aiCount').value) || 8));
 
   if (!topic) return status('aiStatus', 'Avval mavzuni yozing.', 'error');
-  if (decks.length >= 3) return status('aiStatus', 'Limit tugadi: ko‘pi bilan 3 ta taqdimot.', 'error');
+  if (decks.length >= 3) {
+    return status('aiStatus', 'Limit tugadi: ko‘pi bilan 3 ta taqdimot.', 'error');
+  }
 
   const btn = $('generateAI');
   btn.disabled = true;
@@ -286,6 +601,7 @@ async function generateAI() {
     });
 
     let data;
+
     try {
       data = await res.json();
     } catch {
@@ -298,7 +614,8 @@ async function generateAI() {
       throw new Error('AI bo‘sh javob qaytardi.');
     }
 
-    const slides = data.slides.slice(0, 15).map(normalizeSlide);
+    status('aiStatus', 'Slaydlar uchun rasmlar qidirilmoqda…');
+    const slides = await withImages(data.slides, topic);
     const title = $('deckTitle').value.trim() || data.title || topic;
 
     status('aiStatus', 'Slaydlar bulutga saqlanmoqda…');
@@ -309,13 +626,22 @@ async function generateAI() {
       slides
     });
 
-    if (error) throw new Error('AI yaratdi, ammo saqlashda xatolik: ' + message(error));
+    if (error) {
+      throw new Error('AI yaratdi, ammo saqlashda xatolik: ' + message(error));
+    }
 
     $('deckTitle').value = '';
     $('aiTopic').value = '';
-    status('aiStatus', slides.length + ' ta slayd AI yordamida yaratildi va saqlandi!', 'success');
-    await load();
 
+    const found = slides.filter(s => s.imageUrl).length;
+
+    status(
+      'aiStatus',
+      `${slides.length} ta slayd yaratildi va saqlandi. ${found} tasiga rasm topildi.`,
+      'success'
+    );
+
+    await load();
   } catch (e) {
     status('aiStatus', e.message || 'Noma’lum xatolik', 'error');
   } finally {
@@ -329,24 +655,46 @@ async function createDeck() {
   const title = $('deckTitle').value.trim();
   const st = $('slideTitle').value.trim();
   const body = $('slideBody').value.trim();
+  const manualImage = $('manualImage').value.trim();
 
-  if (!title || !st) return status('appStatus', 'Taqdimot nomi va slayd sarlavhasini kiriting.', 'error');
-  if (decks.length >= 3) return status('appStatus', 'Limit tugadi: ko‘pi bilan 3 ta taqdimot.', 'error');
+  if (!title || !st) {
+    return status('appStatus', 'Taqdimot nomi va slayd sarlavhasini kiriting.', 'error');
+  }
+
+  if (decks.length >= 3) {
+    return status('appStatus', 'Limit tugadi: ko‘pi bilan 3 ta taqdimot.', 'error');
+  }
 
   status('appStatus', 'Saqlanmoqda…');
+
+  let imageUrl = manualImage;
+
+  if (!imageUrl) {
+    status('appStatus', 'Slayd uchun rasm qidirilmoqda…');
+    imageUrl = await findSlideImage(st, title);
+  }
 
   const { error } = await supabase.from('presentations').insert({
     user_id: user.id,
     title,
-    slides: [{ title: st, body }]
+    slides: [{ title: st, body, imageUrl }]
   });
 
-  if (error) return status('appStatus', 'Saqlashda xatolik: ' + message(error), 'error');
+  if (error) {
+    return status('appStatus', 'Saqlashda xatolik: ' + message(error), 'error');
+  }
 
   $('deckTitle').value = '';
   $('slideTitle').value = '';
   $('slideBody').value = '';
-  status('appStatus', 'Taqdimot bulutga saqlandi.', 'success');
+  $('manualImage').value = '';
+
+  status(
+    'appStatus',
+    imageUrl ? 'Taqdimot rasm bilan saqlandi.' : 'Taqdimot saqlandi, lekin rasm topilmadi.',
+    'success'
+  );
+
   await load();
 }
 
@@ -359,16 +707,29 @@ async function addSlide(id) {
   if (title === null || !title.trim()) return;
 
   const body = prompt('Slayd matni:') || '';
+  status('appStatus', 'Slayd uchun rasm qidirilmoqda…');
+
+  const imageUrl = await findSlideImage(title, d.title);
+  const updatedSlides = [
+    ...d.slides,
+    { title: title.trim(), body, imageUrl }
+  ];
 
   const { error } = await supabase.from('presentations')
-    .update({ slides: [...d.slides, { title: title.trim(), body }] })
+    .update({ slides: updatedSlides })
     .eq('id', id)
     .eq('user_id', user.id);
 
-  if (error) return status('appStatus', 'Slayd saqlanmadi: ' + message(error), 'error');
+  if (error) {
+    return status('appStatus', 'Slayd saqlanmadi: ' + message(error), 'error');
+  }
 
   await load();
-  status('appStatus', 'Slayd saqlandi.', 'success');
+  status(
+    'appStatus',
+    imageUrl ? 'Slayd rasm bilan saqlandi.' : 'Slayd saqlandi, ammo rasm topilmadi.',
+    'success'
+  );
 }
 
 async function removeDeck(id) {
@@ -380,15 +741,30 @@ async function removeDeck(id) {
     .eq('id', id)
     .eq('user_id', user.id);
 
-  if (error) return status('appStatus', 'O‘chirishda xatolik: ' + message(error), 'error');
+  if (error) {
+    return status('appStatus', 'O‘chirishda xatolik: ' + message(error), 'error');
+  }
 
   await load();
 }
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
   }[c]));
+}
+
+function safeImageUrl(value) {
+  try {
+    const u = new URL(value);
+    return u.protocol === 'https:' ? u.href : '';
+  } catch {
+    return '';
+  }
 }
 
 function pdf(id) {
@@ -398,28 +774,107 @@ function pdf(id) {
   const w = open('', '_blank');
   if (!w) return alert('Brauzerda yangi oynaga ruxsat bering.');
 
-  const slides = d.slides.map(s => `
-    <section>
-      <h1>${esc(s.title)}</h1>
-      <p>${esc(s.body || '').replace(/\n/g, '<br>')}</p>
-      <b class="wm">Usta Crak</b>
-    </section>
-  `).join('');
+  const slides = d.slides.map(s => {
+    const imageUrl = safeImageUrl(s.imageUrl);
+
+    return `
+      <section>
+        <h1>${esc(s.title)}</h1>
+        ${imageUrl ? `<img class="slide-img" src="${esc(imageUrl)}" alt="">` : ''}
+        <p>${esc(s.body || '').replace(/\n/g, '<br>')}</p>
+        <b class="wm">Usta Crak</b>
+      </section>
+    `;
+  }).join('');
 
   w.document.write(`<!doctype html>
-  <html><head><meta charset="utf-8"><title>${esc(d.title)}</title>
+  <html lang="uz">
+  <head>
+  <meta charset="utf-8">
+  <title>${esc(d.title)}</title>
   <style>
-  @page{size:landscape;margin:0}
-  body{margin:0;font-family:Arial}
-  section{width:100vw;height:100vh;box-sizing:border-box;padding:9%;page-break-after:always;background:linear-gradient(135deg,#123b6d,#101a30);color:white;position:relative}
-  h1{font-size:42pt}
-  p{font-size:23pt;white-space:pre-wrap;overflow-wrap:anywhere}
-  .wm{position:absolute;right:30px;bottom:20px;color:#dcecff}
-  </style></head><body>${slides}
-  <script>onload=()=>print();<\/script>
-  </body></html>`);
+  @page { size:landscape; margin:0 }
+  * { box-sizing:border-box }
+  body { margin:0;font-family:Arial,sans-serif }
+  section {
+    width:100vw;
+    min-height:100vh;
+    padding:5% 7%;
+    page-break-after:always;
+    background:linear-gradient(135deg,#123b6d,#101a30);
+    color:white;
+    position:relative;
+    overflow:hidden;
+  }
+  h1 { font-size:34pt;margin:0 0 18px }
+  .slide-img {
+    display:block;
+    max-width:100%;
+    max-height:42vh;
+    object-fit:contain;
+    border-radius:12px;
+    margin:0 auto 16px;
+  }
+  p {
+    font-size:19pt;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
+  .wm {
+    position:absolute;
+    right:30px;
+    bottom:20px;
+    color:#dcecff;
+  }
+  @media print {
+    section { height:100vh;min-height:100vh }
+  }
+  </style>
+  </head>
+  <body>
+  ${slides}
+  <script>
+  window.onload = async () => {
+    const imgs = Array.from(document.images);
+    await Promise.all(imgs.map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    }));
+    setTimeout(() => window.print(), 500);
+  };
+  <\/script>
+  </body>
+  </html>`);
 
   w.document.close();
+}
+
+/* Rasmni PowerPoint uchun data URL formatiga aylantirish */
+async function imageToDataUrl(url) {
+  try {
+    const safe = safeImageUrl(url);
+    if (!safe) return '';
+
+    const response = await fetch(safe, { mode:'cors' });
+    if (!response.ok) return '';
+
+    const blob = await response.blob();
+
+    if (!/^image\/(jpeg|png|webp)$/i.test(blob.type)) return '';
+
+    return await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    console.warn('PowerPoint uchun rasm yuklanmadi:', e);
+    return '';
+  }
 }
 
 async function pptx(id) {
@@ -438,39 +893,81 @@ async function pptx(id) {
     pptx.subject = d.title;
     pptx.title = d.title;
     pptx.theme = {
-      headFontFace: 'Aptos Display',
-      bodyFontFace: 'Aptos',
-      lang: 'uz-UZ'
+      headFontFace:'Aptos Display',
+      bodyFontFace:'Aptos',
+      lang:'uz-UZ'
     };
 
     for (const item of d.slides) {
       const sl = pptx.addSlide();
-      sl.background = { color: '101A30' };
+      sl.background = { color:'101A30' };
 
       sl.addText(String(item.title || ''), {
-        x: 0.7, y: 0.6, w: 12, h: 1.2,
-        fontFace: 'Aptos Display', fontSize: 30,
-        bold: true, color: '64C8FF', margin: 0.05
+        x:0.7, y:0.35, w:12, h:0.8,
+        fontFace:'Aptos Display',
+        fontSize:28,
+        bold:true,
+        color:'64C8FF',
+        margin:0.05,
+        breakLine:false,
+        fit:'shrink'
       });
 
+      let bodyX = 0.85;
+      let bodyW = 11.4;
+      let bodyY = 1.45;
+      let bodyH = 5.3;
+
+      if (item.imageUrl) {
+        const dataUrl = await imageToDataUrl(item.imageUrl);
+
+        if (dataUrl) {
+          sl.addImage({
+            data:dataUrl,
+            x:0.8,
+            y:1.35,
+            w:5.6,
+            h:4.8,
+            sizingContain:true
+          });
+
+          bodyX = 6.7;
+          bodyW = 5.8;
+          bodyY = 1.5;
+          bodyH = 4.9;
+        }
+      }
+
       sl.addText(String(item.body || ''), {
-        x: 0.85, y: 2, w: 11.4, h: 4.3,
-        fontFace: 'Aptos', fontSize: 20,
-        color: 'F3F6FF', valign: 'top',
-        fit: 'shrink', margin: 0.08
+        x:bodyX,
+        y:bodyY,
+        w:bodyW,
+        h:bodyH,
+        fontFace:'Aptos',
+        fontSize:18,
+        color:'F3F6FF',
+        valign:'top',
+        breakLine:false,
+        fit:'shrink',
+        margin:0.08
       });
 
       sl.addText('Usta Crak', {
-        x: 10.8, y: 7.05, w: 1.7, h: 0.25,
-        fontSize: 10, color: 'AAB6D0',
-        align: 'right', margin: 0
+        x:10.8,
+        y:7.05,
+        w:1.7,
+        h:0.25,
+        fontSize:10,
+        color:'AAB6D0',
+        align:'right',
+        margin:0
       });
     }
 
     const filename = (d.title || 'usta-crak')
       .replace(/[\\/:*?"<>|]/g, '_') + '.pptx';
 
-    await pptx.writeFile({ fileName: filename });
+    await pptx.writeFile({ fileName:filename });
     status('appStatus', 'PowerPoint (.pptx) yuklab olindi.', 'success');
 
   } catch (e) {
@@ -496,22 +993,52 @@ function render() {
     c.className = 'deck';
 
     const small = document.createElement('small');
+    small.className = 'muted';
     small.textContent = d.slides.length + '/15 slayd';
 
     const h = document.createElement('h3');
     h.textContent = d.title;
 
-    const p = document.createElement('p');
-    p.textContent = d.slides[0]?.body || d.slides[0]?.title || 'Taqdimot tayyor';
+    c.append(small, h);
 
-    c.append(small, h, p);
+    const first = d.slides[0];
+
+    if (first?.imageUrl) {
+      const img = document.createElement('img');
+      img.className = 'deck-cover';
+      img.src = safeImageUrl(first.imageUrl);
+      img.alt = first.title || d.title;
+      img.loading = 'lazy';
+      img.onerror = () => img.remove();
+      c.append(img);
+    }
+
+    const p = document.createElement('p');
+    p.textContent = first?.body || first?.title || 'Taqdimot tayyor';
+    c.append(p);
 
     const list = document.createElement('div');
+    list.className = 'slide-preview';
 
     d.slides.forEach((s, i) => {
-      const row = document.createElement('p');
-      row.textContent = (i + 1) + '. ' + s.title + (s.body ? ' — ' + s.body : '');
-      list.append(row);
+      const heading = document.createElement('h4');
+      heading.textContent = (i + 1) + '. ' + s.title;
+      list.append(heading);
+
+      if (s.imageUrl) {
+        const img = document.createElement('img');
+        img.src = safeImageUrl(s.imageUrl);
+        img.alt = s.title || '';
+        img.loading = 'lazy';
+        img.onerror = () => img.remove();
+        list.append(img);
+      }
+
+      if (s.body) {
+        const text = document.createElement('p');
+        text.textContent = s.body;
+        list.append(text);
+      }
     });
 
     c.append(list);
@@ -570,7 +1097,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
   if (u) setTimeout(load, 0);
 });
 
-const { data: { session } } = await supabase.auth.getSession();
+const { data:{ session } } = await supabase.auth.getSession();
 
 if (session?.user) {
   sessionUI(session.user);
