@@ -107,7 +107,7 @@ async function generateAI(){
 async function addSlide(id){const d=decks.find(x=>x.id===id);if(!d)return;if(d.slides.length>=20)return alert('Limit — 20 ta slayd.');const title=prompt('Slayd sarlavhasi:');if(title===null||!title.trim())return;const body=prompt('Slayd matni:')||'';const {error}=await supabase.from('presentations').update({slides:[...d.slides,{title:title.trim(),body}],updated_at:new Date().toISOString()}).eq('id',id).eq('user_id',user.id);if(error)return status('appStatus','Slayd saqlanmadi: '+message(error),'error');await load();status('appStatus','Slayd saqlandi.','success')}
 async function removeDeck(id){const d=decks.find(x=>x.id===id);if(!d||!confirm('“'+d.title+'” o‘chirilsinmi?'))return;const {error}=await supabase.from('presentations').delete().eq('id',id).eq('user_id',user.id);if(error)return status('appStatus','O‘chirishda xatolik: '+message(error),'error');await load()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function pdf(id){const d=decks.find(x=>x.id===id);if(!d)return;const w=open('','_blank');if(!w)return alert('Brauzerda yangi oynaga ruxsat bering.');const slides=d.slides.map(s=>`<section><h1>${esc(s.title)}</h1><p>${esc(s.body).replace(/\n/g,'<br>')}</p>${s.imageUrl||s.image_url||s.image?`<img class="slide-photo" src="${esc(s.imageUrl||s.image_url||s.image)}" alt="">`:''}<b class="wm">Usta Crak</b></section>`).join('');w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title)}</title><style>@page{size:landscape;margin:0}body{margin:0;font-family:Arial}section{width:100vw;height:100vh;box-sizing:border-box;padding:9%;page-break-after:always;background:linear-gradient(135deg,#123b6d,#101a30);color:white;position:relative}h1{font-size:42pt}p{font-size:23pt;white-space:pre-wrap}.slide-photo{max-width:38%;max-height:38%;object-fit:contain;position:absolute;right:7%;bottom:12%}.wm{position:absolute;right:30px;bottom:20px;color:#dcecff}</style></head><body>${slides}<script>onload=()=>print()<\/script></body></html>`);w.document.close()}
+function pdf(id){const d=decks.find(x=>x.id===id);if(!d)return;const w=open('','_blank');if(!w)return alert('Brauzerda yangi oynaga ruxsat bering.');const pdfBgs=['linear-gradient(135deg,#102a43,#243b55)','linear-gradient(135deg,#301934,#5b2c6f)','linear-gradient(135deg,#063970,#0b6e75)','linear-gradient(135deg,#3b1f0f,#8f4e21)','linear-gradient(135deg,#172554,#4338ca)','linear-gradient(135deg,#052e2b,#166534)','linear-gradient(135deg,#3f1d38,#9d174d)','linear-gradient(135deg,#202124,#374151)'];const slides=d.slides.map((s,i)=>`<section style="background:${pdfBgs[i%pdfBgs.length]}"><h1>${esc(s.title)}</h1><p>${esc(s.body).replace(/\n/g,'<br>')}</p>${s.imageUrl||s.image_url||s.image?`<img class="slide-photo" src="${esc(s.imageUrl||s.image_url||s.image)}" alt="">`:''}<b class="wm">Usta Crak</b></section>`).join('');w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title)}</title><style>@page{size:landscape;margin:0}body{margin:0;font-family:Arial}section{width:100vw;height:100vh;box-sizing:border-box;padding:9%;page-break-after:always;background:linear-gradient(135deg,#123b6d,#101a30);color:white;position:relative}h1{font-size:42pt}p{font-size:23pt;white-space:pre-wrap}.slide-photo{max-width:38%;max-height:38%;object-fit:contain;position:absolute;right:7%;bottom:12%}.wm{position:absolute;right:30px;bottom:20px;color:#dcecff}</style></head><body>${slides}<script>onload=()=>print()<\/script></body></html>`);w.document.close()}
 async function imageUrlToPptxData(url){
  if(!url)return '';
  // Ba'zi rasm serverlari to'g'ridan-to'g'ri CORS so'roviga ruxsat bermaydi.
@@ -162,11 +162,13 @@ async function pptx(id){
   status('appStatus','PowerPoint tayyorlanmoqda: rasmlar fayl ichiga joylanmoqda…');
   const pptx=new window.PptxGenJS();pptx.layout='LAYOUT_WIDE';pptx.author='Usta Crak';pptx.subject='Taqdimot';pptx.title=d.title;
   let imageCount=0,missingImages=0;
+  const bgPalette=['102A43','30204A','073B4C','4A2612','172554','12372A','4A1837','242B3A'];
   for(let i=0;i<d.slides.length;i++){
-   const s=d.slides[i],sl=pptx.addSlide(),isCover=i===0;
-   sl.background={color:isCover?'102B50':'F4F7FC'};
-   sl.addText('USTA CRAK',{x:.55,y:.35,w:3,h:.3,fontFace:'Aptos',fontSize:10,bold:true,color:isCover?'72D6FF':'2876C8',charSpacing:2});
-   sl.addText(String(s.title||''),{x:.65,y:1.0,w:11.5,h:1.15,fontFace:'Aptos Display',fontSize:isCover?32:27,bold:true,color:isCover?'FFFFFF':'17243A',fit:'shrink'});
+   const s=d.slides[i],sl=pptx.addSlide(),isCover=i===0,bg=bgPalette[i%bgPalette.length];
+   sl.background={color:bg};
+   try{sl.addShape(pptx.ShapeType.ellipse,{x:9.6,y:-1.2,w:4.6,h:4.6,line:{color:bg,transparency:100},fill:{color:'FFFFFF',transparency:91}});sl.addShape(pptx.ShapeType.ellipse,{x:-1.4,y:5.0,w:4.2,h:4.2,line:{color:bg,transparency:100},fill:{color:'4FD1FF',transparency:88}});sl.addShape(pptx.ShapeType.line,{x:.6,y:1.78,w:2.2,h:0,line:{color:'63D7FF',width:3,transparency:12}})}catch(decorError){console.warn('Fon bezagi qo‘shilmadi',decorError)}
+   sl.addText('USTA CRAK',{x:.55,y:.35,w:3,h:.3,fontFace:'Aptos',fontSize:10,bold:true,color:'72D6FF',charSpacing:2});
+   sl.addText(String(s.title||''),{x:.65,y:1.0,w:11.5,h:1.15,fontFace:'Aptos Display',fontSize:isCover?32:27,bold:true,color:'FFFFFF',fit:'shrink'});
    const imageUrl=s.imageUrl||s.image_url||s.image||'';
    let imageData='';
    if(imageUrl){
@@ -174,8 +176,8 @@ async function pptx(id){
     if(imageData){try{sl.addImage({data:imageData,x:8.05,y:2.45,w:4.55,h:3.65});imageCount++}catch(imageError){console.warn('PPTX addImage xatosi',imageError);missingImages++}}
     else missingImages++;
    }
-   sl.addText(String(s.body||''),{x:.7,y:2.45,w:imageData?6.95:11.3,h:3.8,fontFace:'Aptos',fontSize:18,color:isCover?'E7F1FF':'34435B',breakLine:false,fit:'shrink',valign:'top',margin:.08});
-   sl.addText('Usta Crak  ·  '+(i+1)+' / '+d.slides.length,{x:8.5,y:6.9,w:4.1,h:.25,fontSize:9,color:isCover?'B8D7F6':'7A879C',align:'right'});
+   sl.addText(String(s.body||''),{x:.7,y:2.45,w:imageData?6.95:11.3,h:3.8,fontFace:'Aptos',fontSize:18,color:'EAF2FF',breakLine:false,fit:'shrink',valign:'top',margin:.08});
+   sl.addText('Usta Crak  ·  '+(i+1)+' / '+d.slides.length,{x:8.5,y:6.9,w:4.1,h:.25,fontSize:9,color:'C7D9F2',align:'right'});
   }
   await pptx.writeFile({fileName:(d.title||'Usta-Crak').replace(/[\\/:*?"<>|]/g,'-').slice(0,70)+'.pptx'});
   status('appStatus',`PowerPoint yuklab olindi. ${imageCount} ta rasm fayl ichiga joylandi.`+(missingImages?` ${missingImages} ta rasm qo‘shilmadi. Internetni tekshiring yoki qayta urinib ko‘ring.`:''),missingImages?'error':'success');
