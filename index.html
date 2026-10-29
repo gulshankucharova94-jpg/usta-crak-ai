@@ -108,7 +108,51 @@ async function addSlide(id){const d=decks.find(x=>x.id===id);if(!d)return;if(d.s
 async function removeDeck(id){const d=decks.find(x=>x.id===id);if(!d||!confirm('“'+d.title+'” o‘chirilsinmi?'))return;const {error}=await supabase.from('presentations').delete().eq('id',id).eq('user_id',user.id);if(error)return status('appStatus','O‘chirishda xatolik: '+message(error),'error');await load()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function pdf(id){const d=decks.find(x=>x.id===id);if(!d)return;const w=open('','_blank');if(!w)return alert('Brauzerda yangi oynaga ruxsat bering.');const slides=d.slides.map(s=>`<section><h1>${esc(s.title)}</h1><p>${esc(s.body).replace(/\n/g,'<br>')}</p>${s.imageUrl||s.image_url||s.image?`<img class="slide-photo" src="${esc(s.imageUrl||s.image_url||s.image)}" alt="">`:''}<b class="wm">Usta Crak</b></section>`).join('');w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.title)}</title><style>@page{size:landscape;margin:0}body{margin:0;font-family:Arial}section{width:100vw;height:100vh;box-sizing:border-box;padding:9%;page-break-after:always;background:linear-gradient(135deg,#123b6d,#101a30);color:white;position:relative}h1{font-size:42pt}p{font-size:23pt;white-space:pre-wrap}.slide-photo{max-width:38%;max-height:38%;object-fit:contain;position:absolute;right:7%;bottom:12%}.wm{position:absolute;right:30px;bottom:20px;color:#dcecff}</style></head><body>${slides}<script>onload=()=>print()<\/script></body></html>`);w.document.close()}
-async function pptx(id){const d=decks.find(x=>x.id===id);if(!d)return;if(!window.PptxGenJS)return status('appStatus','PPTX kutubxonasi yuklanmadi. Internetni tekshirib qayta urinib ko‘ring.','error');try{const pptx=new window.PptxGenJS();pptx.layout='LAYOUT_WIDE';pptx.author='Usta Crak';pptx.subject='Taqdimot';pptx.title=d.title;for(let i=0;i<d.slides.length;i++){const s=d.slides[i];const sl=pptx.addSlide();sl.background={color:i===0?'102B50':'F4F7FC'};sl.addText('USTA CRAK',{x:.55,y:.35,w:3,h:.3,fontFace:'Aptos',fontSize:10,bold:true,color:i===0?'72D6FF':'2876C8',charSpacing:2});sl.addText(String(s.title||''),{x:.65,y:1.0,w:11.5,h:1.25,fontFace:'Aptos Display',fontSize:i===0?32:27,bold:true,color:i===0?'FFFFFF':'17243A',fit:'shrink'});sl.addText(String(s.body||''),{x:.7,y:2.55,w:11.3,h:3.7,fontFace:'Aptos',fontSize:18,color:i===0?'E7F1FF':'34435B',breakLine:false,fit:'shrink',valign:'top',margin:.08});sl.addText('Usta Crak  ·  '+(i+1)+' / '+d.slides.length,{x:8.5,y:6.9,w:4.1,h:.25,fontSize:9,color:i===0?'B8D7F6':'7A879C',align:'right'});}await pptx.writeFile({fileName:(d.title||'Usta-Crak').replace(/[\\/:*?"<>|]/g,'-').slice(0,70)+'.pptx'});status('appStatus','PPTX yuklab olindi.','success')}catch(e){status('appStatus','PPTX yaratishda xatolik: '+(e?.message||'noma’lum'),'error')}}
+async function imageUrlToPptxData(url){
+ if(!url)return '';
+ try{
+  const response=await fetch(url,{mode:'cors',credentials:'omit'});
+  if(!response.ok)throw new Error('Rasmni yuklab bo‘lmadi ('+response.status+')');
+  const blob=await response.blob();
+  if(!/^image\/(jpeg|jpg|png|webp)$/i.test(blob.type||''))throw new Error('Rasm formati qo‘llab-quvvatlanmaydi');
+  const objectUrl=URL.createObjectURL(blob);
+  try{
+   const img=new Image();img.src=objectUrl;
+   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Rasm ochilmadi'))});
+   const canvas=document.createElement('canvas');
+   const scale=Math.min(1,1800/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+   canvas.width=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));canvas.height=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+   const ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+   return canvas.toDataURL('image/jpeg',0.9);
+  }finally{URL.revokeObjectURL(objectUrl)}
+ }catch(err){console.warn('PowerPoint uchun rasmni joylash imkoni bo‘lmadi:',url,err);return ''}
+}
+async function pptx(id){
+ const d=decks.find(x=>x.id===id);if(!d)return;
+ if(!window.PptxGenJS)return status('appStatus','PPTX kutubxonasi yuklanmadi. Internetni tekshirib qayta urinib ko‘ring.','error');
+ try{
+  status('appStatus','PowerPoint tayyorlanmoqda: rasmlar fayl ichiga joylanmoqda…');
+  const pptx=new window.PptxGenJS();pptx.layout='LAYOUT_WIDE';pptx.author='Usta Crak';pptx.subject='Taqdimot';pptx.title=d.title;
+  let imageCount=0,missingImages=0;
+  for(let i=0;i<d.slides.length;i++){
+   const s=d.slides[i],sl=pptx.addSlide(),isCover=i===0;
+   sl.background={color:isCover?'102B50':'F4F7FC'};
+   sl.addText('USTA CRAK',{x:.55,y:.35,w:3,h:.3,fontFace:'Aptos',fontSize:10,bold:true,color:isCover?'72D6FF':'2876C8',charSpacing:2});
+   sl.addText(String(s.title||''),{x:.65,y:1.0,w:11.5,h:1.15,fontFace:'Aptos Display',fontSize:isCover?32:27,bold:true,color:isCover?'FFFFFF':'17243A',fit:'shrink'});
+   const imageUrl=s.imageUrl||s.image_url||s.image||'';
+   let imageData='';
+   if(imageUrl){
+    imageData=await imageUrlToPptxData(imageUrl);
+    if(imageData){try{sl.addImage({data:imageData,x:8.05,y:2.45,w:4.55,h:3.65});imageCount++}catch(imageError){console.warn('PPTX addImage xatosi',imageError);missingImages++}}
+    else missingImages++;
+   }
+   sl.addText(String(s.body||''),{x:.7,y:2.45,w:imageData?6.95:11.3,h:3.8,fontFace:'Aptos',fontSize:18,color:isCover?'E7F1FF':'34435B',breakLine:false,fit:'shrink',valign:'top',margin:.08});
+   sl.addText('Usta Crak  ·  '+(i+1)+' / '+d.slides.length,{x:8.5,y:6.9,w:4.1,h:.25,fontSize:9,color:isCover?'B8D7F6':'7A879C',align:'right'});
+  }
+  await pptx.writeFile({fileName:(d.title||'Usta-Crak').replace(/[\\/:*?"<>|]/g,'-').slice(0,70)+'.pptx'});
+  status('appStatus',`PowerPoint yuklab olindi. ${imageCount} ta rasm fayl ichiga joylandi.`+(missingImages?` ${missingImages} ta rasmni yuklab bo‘lmadi; internet yoki rasm manbasini tekshiring.`:''),missingImages?'error':'success');
+ }catch(e){status('appStatus','PPTX yaratishda xatolik: '+(e?.message||'noma’lum'),'error')}
+}
 function render(){$('count').textContent=decks.length+'/3';const host=$('decks');host.replaceChildren();if(!decks.length){const e=document.createElement('div');e.className='empty';e.textContent='Hali taqdimot yo‘q. Birinchi taqdimotingizni yarating.';host.append(e);return}for(const d of decks){const c=document.createElement('article');c.className='deck';const small=document.createElement('small');small.textContent=d.slides.length+'/20 slayd';const h=document.createElement('h3');h.textContent=d.title;const p=document.createElement('p');p.textContent=d.slides[0]?.body||d.slides[0]?.title||'Taqdimot tayyor';c.append(small,h,p);const list=document.createElement('div');d.slides.forEach((s,i)=>{const item=document.createElement('div');item.style.borderTop='1px solid #5279ac';item.style.paddingTop='8px';item.style.marginTop='8px';const row=document.createElement('p');row.textContent=(i+1)+'. '+s.title+(s.body?' — '+s.body:'');item.append(row);if(s.imageUrl||s.image_url||s.image){const img=document.createElement('img');img.className='slide-image';img.src=s.imageUrl||s.image_url||s.image;img.alt=s.title||'Slayd rasmi';img.loading='lazy';img.onerror=()=>img.remove();item.append(img)}list.append(item)});c.append(list);const actions=document.createElement('div');actions.className='actions';const a=document.createElement('button');a.className='secondary';a.textContent='+ Slayd';a.disabled=d.slides.length>=20;a.onclick=()=>addSlide(d.id);const b=document.createElement('button');b.className='secondary';b.textContent='PDF / Chop etish';b.onclick=()=>pdf(d.id);const x=document.createElement('button');x.className='secondary';x.textContent='PPTX yuklab olish';x.onclick=()=>pptx(d.id);const del=document.createElement('button');del.className='danger';del.textContent='O‘chirish';del.onclick=()=>removeDeck(d.id);actions.append(a,b,x,del);c.append(actions);const wm=document.createElement('div');wm.className='watermark';wm.textContent='Usta Crak';c.append(wm);host.append(c)}}
 $('login').onclick=login;$('signup').onclick=signup;$('generate').onclick=generateAI;$('templateGenerate').onclick=generateTemplate;$('logout').onclick=logout;$('create').onclick=createDeck;$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('year').textContent=new Date().getFullYear();
 supabase.auth.onAuthStateChange((_event,session)=>{const u=session?.user||null;sessionUI(u);if(u)setTimeout(load,0)});
