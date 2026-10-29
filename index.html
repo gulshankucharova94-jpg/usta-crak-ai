@@ -59,25 +59,32 @@ function topicSlides(topic,count,lang){
  return Array.from({length:count},(_,i)=>({title:i===0?topic:heads[(i-1)%heads.length],body:i===0?(uz?`${topic} mavzusiga kirish. Ushbu taqdimotda asosiy tushunchalar, misollar va xulosalar ko‘rib chiqiladi.`:ru?`Введение в тему «${topic}». Презентация охватывает основные понятия, примеры и выводы.`:`An introduction to ${topic}. This presentation covers key concepts, examples, and conclusions.`):`${intros[(i-1)%intros.length]}\n\nMavzu: ${topic}.\n\n• Asosiy fikrni aniqlang\n• Ishonchli misol yoki dalil keltiring\n• Qisqa xulosa chiqaring`}));
 }
 async function generateTemplate(){const topic=$('topic').value.trim();if(!topic)return status('appStatus','Avval mavzuni kiriting.','error');if(decks.length>=3)return status('appStatus','Limit tugadi: ko‘pi bilan 3 ta taqdimot.','error');const count=Math.min(20,Math.max(1,Number($('slideCount').value)||6));const slides=topicSlides(topic,count,$('slideLang').value);await saveDeck(topic,slides)}
-async function findSlideImage(title, topic = '') {
- const queries=[`${title||''} ${topic||''}`.trim(),String(title||'').trim(),String(topic||'').trim()].filter(Boolean);
+async function findSlideImage(title, topic = '', body = '', used = new Set()) {
+ // Har bir slayd uchun avval uning o'z sarlavhasi va matniga mos rasm qidiriladi.
+ const clean = value => String(value || '').replace(/[•\n\r]+/g, ' ').replace(/[^\p{L}\p{N} ]/gu, ' ').replace(/\s+/g, ' ').trim();
+ const bodyWords = clean(body).split(' ').filter(word => word.length > 3).slice(0, 7).join(' ');
+ const queries=[clean(`${title} ${bodyWords}`),clean(title),clean(`${title} ${topic}`),clean(topic)].filter(Boolean);
  for(const query of [...new Set(queries)]){
   try{
-   const params=new URLSearchParams({action:'query',generator:'search',gsrsearch:query,gsrnamespace:'6',gsrlimit:'10',prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'1200',format:'json',origin:'*'});
+   const params=new URLSearchParams({action:'query',generator:'search',gsrsearch:query,gsrnamespace:'6',gsrlimit:'20',prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'1200',format:'json',origin:'*'});
    const response=await fetch('https://commons.wikimedia.org/w/api.php?'+params.toString());
    if(!response.ok)continue;
    const data=await response.json();
    const images=Object.values(data.query?.pages||{}).map(page=>page.imageinfo?.[0]).filter(info=>info&&/^image\/(jpeg|png|webp)$/i.test(info.mime||'')&&/^https:\/\/upload\.wikimedia\.org\//i.test(info.thumburl||info.url||''));
-   if(images.length)return images[0].thumburl||images[0].url;
+   const unique=images.map(info=>info.thumburl||info.url).filter(url=>url&&!used.has(url));
+   if(unique.length)return unique[Math.floor(Math.random()*Math.min(unique.length,5))];
   }catch(error){console.warn('Rasm qidirish xatosi:',query,error)}
  }
  return '';
 }
 async function withImages(slides,topic){
- const normalized=slides.slice(0,20).map(s=>({title:String(s.title||s.heading||'Slayd'),body:String(s.body||s.content||s.text||''),imageUrl:s.imageUrl||s.image_url||s.image||''}));
- let cursor=0;
- const workers=Array.from({length:Math.min(4,normalized.length)},async()=>{while(cursor<normalized.length){const i=cursor++;if(!normalized[i].imageUrl)normalized[i].imageUrl=await findSlideImage(normalized[i].title,topic)}});
- await Promise.all(workers);
+ const normalized=slides.slice(0,20).map(s=>({title:String(s.title||s.heading||'Slayd'),body:String(s.body||s.content||s.text||''),imageUrl:''}));
+ const used=new Set();
+ // Ketma-ket qidirish takroriy rasmlarning oldini oladi.
+ for(const slide of normalized){
+  slide.imageUrl=await findSlideImage(slide.title,topic,slide.body,used);
+  if(slide.imageUrl)used.add(slide.imageUrl);
+ }
  return normalized;
 }
 async function generateAI(){
