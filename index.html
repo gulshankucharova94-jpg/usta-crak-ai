@@ -96,35 +96,66 @@ function topicSlides(topic,count,lang){
  ];
  return Array.from({length:count},(_,i)=>{const sec=sections[i%sections.length], heading=i===0?(uz?'Kirish: '+topic:ru?'Введение: '+topic:'Introduction: '+topic):sec[0]+' — '+topic; const body=(uz?`MAVZU: ${topic}\n\n${sec[1]}\n\n${sec[2]}\n\n${sec[3]}\n\nAmaliy yondashuv: mavzuga tegishli aniq misol, sabab–natija bog‘lanishi va asoslangan xulosani kiriting. Tekshirilmagan raqam yoki faktni haqiqat sifatida ko‘rsatmang.`:ru?`ТЕМА: ${topic}\n\n${sec[1]}\n\n${sec[2]}\n\n${sec[3]}\n\nПрактический подход: добавьте конкретный пример по теме, связь причины и следствия и обоснованный вывод. Не выдавайте непроверенные числа или сведения за факты.`:`TOPIC: ${topic}\n\n${sec[1]}\n\n${sec[2]}\n\n${sec[3]}\n\nPractical approach: include a topic-specific example, a cause-and-effect link, and a reasoned takeaway. Do not present unverified numbers or claims as facts.`);return {title:heading,body};});
 }
-async function generateTemplate(){const topic=$('topic').value.trim();if(!topic)return status('appStatus','Avval mavzuni kiriting.','error');if(decks.length>=3)return status('appStatus','Limit tugadi: ko‘pi bilan 3 ta taqdimot.','error');const count=Math.min(20,Math.max(1,Number($('slideCount').value)||6));status('appStatus','Shablon slaydlar va rasmlar tayyorlanmoqda…');try{const slides=await withImages(topicSlides(topic,count,$('slideLang').value),topic);const found=slides.filter(s=>s.imageUrl).length;await saveDeck(topic,slides);if(!statusTextIsError())status('appStatus',`${slides.length} ta slayd saqlandi. ${found} ta rasm topildi.`,found?'success':'error')}catch(e){status('appStatus','Rasm qidirishda xatolik: '+e.message,'error')}}
+async function generateTemplate(){const topic=$('topic').value.trim();if(!topic)return status('appStatus','Avval mavzuni kiriting.','error');if(decks.length>=3)return status('appStatus','Limit tugadi: ko‘pi bilan 3 ta taqdimot.','error');const count=Math.min(20,Math.max(1,Number($('slideCount').value)||6));status('appStatus','Shablon slaydlar va rasmlar tayyorlanmoqda…');try{const slides=await withImages(topicSlides(topic,count,$('slideLang').value),topic);const found=slides.filter(s=>s.imageUrl&&!String(s.imageUrl).startsWith('data:image/svg+xml')).length;const illustrations=slides.filter(s=>String(s.imageUrl||'').startsWith('data:image/svg+xml')).length;await saveDeck(topic,slides);if(!statusTextIsError())status('appStatus',`${slides.length} ta slayd saqlandi: ${found} ta mos foto, ${illustrations} ta maxsus illyustratsiya.`,found||illustrations?'success':'error')}catch(e){status('appStatus','Rasm qidirishda xatolik: '+e.message,'error')}}
+function imageLoads(url, timeoutMs=4500){
+ return new Promise(resolve=>{
+  if(!url){resolve(false);return}
+  const img=new Image();let done=false;
+  const finish=ok=>{if(done)return;done=true;clearTimeout(timer);img.onload=null;img.onerror=null;resolve(ok)};
+  const timer=setTimeout(()=>finish(false),timeoutMs);
+  img.onload=()=>finish((img.naturalWidth||0)>40&&(img.naturalHeight||0)>40);
+  img.onerror=()=>finish(false);img.referrerPolicy='no-referrer';img.src=url;
+ });
+}
+function makeVisualFallback(title,topic,index=0){
+ const escSvg=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+ const palette=[['#102a43','#1d4ed8','#67e8f9'],['#28104e','#7c3aed','#f0abfc'],['#073b3a','#0f766e','#99f6e4'],['#43200d','#c2410c','#fed7aa'],['#172554','#4338ca','#bfdbfe'],['#3f1d38','#be185d','#fbcfe8']];
+ const c=palette[Math.abs([...String(title+topic)].reduce((a,ch)=>a+ch.charCodeAt(0),index))%palette.length];
+ const clean=String(title||topic||'Mavzu').replace(/\s+/g,' ').trim();
+ const words=clean.split(' ');const lines=[];let line='';for(const word of words){if((line+' '+word).trim().length>24){if(line)lines.push(line);line=word}else line=(line+' '+word).trim()}if(line)lines.push(line);const shown=lines.slice(0,3).map(escSvg);
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}"/></linearGradient><pattern id="p" width="46" height="46" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2" fill="#fff" opacity=".12"/></pattern></defs><rect width="1200" height="760" rx="36" fill="url(#g)"/><rect width="1200" height="760" rx="36" fill="url(#p)"/><circle cx="1000" cy="170" r="150" fill="${c[2]}" opacity=".16"/><circle cx="1040" cy="210" r="88" fill="none" stroke="${c[2]}" stroke-width="3" opacity=".65"/><path d="M780 470 L1010 350 L1120 500 L960 620 Z" fill="${c[2]}" opacity=".16"/><path d="M820 520 L1000 420 L1090 520" fill="none" stroke="${c[2]}" stroke-width="5" opacity=".7"/><rect x="76" y="76" width="128" height="8" rx="4" fill="${c[2]}"/><text x="76" y="132" font-family="Arial,sans-serif" font-size="26" fill="#fff" opacity=".78">USTA CRAK AI · MAVZULI VIZUAL</text>${shown.map((t,i)=>`<text x="76" y="${300+i*82}" font-family="Arial,sans-serif" font-size="${i===0?58:52}" font-weight="700" fill="#fff">${t}</text>`).join('')}<text x="76" y="650" font-family="Arial,sans-serif" font-size="25" fill="#fff" opacity=".7">Aniq foto topilmaganda ishlatiladigan maxsus illyustratsiya</text></svg>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
 async function findSlideImage(title, topic = '', body = '', used = new Set(), imageQuery = '') {
  const clean = value => String(value || '').replace(/[•\n\r]+/g,' ').replace(/[^\p{L}\p{N} ]/gu,' ').replace(/\s+/g,' ').trim();
- const stop=new Set(['kirish','xulosa','tahlil','muhim','asosiy','misollar','afzalliklar','muammolar','yechimlar','tavsiyalar','kelajak','istiqbollari','savol','javob','introduction','conclusion','analysis','important','examples','benefits','challenges','solutions','recommendations','future','outlook','history','development','key','concepts','topic','mavzu','presentation','taqdimot','введение','заключение','анализ','основные','понятия','примеры','преимущества','проблемы','решения']);
- const tokens = clean(`${title} ${body}`).split(' ').filter(w=>w.length>3&&!stop.has(w.toLowerCase()));
- const unique=[...new Set(tokens)].slice(0,8);
- const queries=[clean(imageQuery),clean(title),clean(`${topic} ${title}`),clean(unique.slice(0,5).join(' ')),clean(topic)].filter(q=>q.length>2);
+ const stop=new Set(['kirish','xulosa','tahlil','muhim','asosiy','misollar','afzalliklar','muammolar','yechimlar','tavsiyalar','kelajak','istiqbollari','savol','javob','introduction','conclusion','analysis','important','examples','benefits','challenges','solutions','recommendations','future','outlook','history','development','key','concepts','topic','mavzu','presentation','taqdimot','введение','заключение','анализ','основные','понятия','примеры','преимущества','проблемы','решения','the','and','for','with','from','into','about','this','that','what','why','how']);
+ const tokens = value => [...new Set(clean(value).toLowerCase().split(' ').filter(w=>w.length>3&&!stop.has(w)))];
+ const topicTerms=tokens(topic), titleTerms=tokens(title), queryTerms=tokens(imageQuery), bodyTerms=tokens(body).slice(0,16);
+ const weighted=[...queryTerms.map(t=>[t,5]),...titleTerms.map(t=>[t,4]),...topicTerms.map(t=>[t,3]),...bodyTerms.map(t=>[t,1])];
+ const specific=[...new Set([...queryTerms,...titleTerms,...topicTerms])];
+ const queries=[clean(imageQuery),clean(`${topic} ${title}`),clean(title),clean(`${topic} ${specific.slice(0,5).join(' ')}`)].filter(q=>q.length>2);
  for(const query of [...new Set(queries)]){
   try{
-   const params=new URLSearchParams({action:'query',generator:'search',gsrsearch:query,gsrnamespace:'6',gsrlimit:'30',gsrsort:'relevance',prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'1200',format:'json',origin:'*'});
+   const params=new URLSearchParams({action:'query',generator:'search',gsrsearch:query,gsrnamespace:'6',gsrlimit:'35',gsrsort:'relevance',prop:'imageinfo',iiprop:'url|mime',iiurlwidth:'1200',format:'json',origin:'*'});
    const response=await fetch('https://commons.wikimedia.org/w/api.php?'+params,{mode:'cors',credentials:'omit'});
    if(!response.ok)continue;
-   const data=await response.json();
-   const pages=Object.values(data?.query?.pages||{});
-   const candidates=pages.map(page=>{const info=page?.imageinfo?.[0],url=info?.thumburl||info?.url||'',name=clean(page?.title||'').toLowerCase();if(!/^https:\/\/upload\.wikimedia\.org\//i.test(url)||used.has(url)||/\.svg(?:$|\?)/i.test(url)|| (info?.mime&&!/^image\/(jpeg|png|webp|gif|tiff)/i.test(info.mime)))return null;let score=0;for(const term of unique){if(name.includes(term.toLowerCase()))score+=3;}for(const term of clean(title).toLowerCase().split(' ')){if(term.length>3&&name.includes(term))score+=2;}return {url,score};}).filter(Boolean).sort((a,b)=>b.score-a.score);
-   // Commons qidiruvi relevanti bo‘yicha saralangan natija beradi; tasodifiy rasm tanlamaymiz.
-   if(candidates.length)return candidates[0].url;
+   const data=await response.json();const pages=Object.values(data?.query?.pages||{});
+   const candidates=pages.map(page=>{
+    const info=page?.imageinfo?.[0],url=info?.thumburl||info?.url||'',name=clean(page?.title||'').toLowerCase();
+    if(!/^https:\/\/upload\.wikimedia\.org\//i.test(url)||used.has(url)||/\.svg(?:$|\?)/i.test(url)||(info?.mime&&!/^image\/(jpeg|png|webp|gif|tiff)/i.test(info.mime)))return null;
+    let score=0;for(const [term,weight] of weighted){if(name.includes(term))score+=weight;}
+    // Qidiruv natijasi faqat sarlavha/mavzu kalit so'zlari bilan mazmunan mos kelsa qabul qilinadi.
+    return {url,score,name};
+   }).filter(x=>x&&x.score>=3).sort((a,b)=>b.score-a.score);
+   for(const candidate of candidates.slice(0,4)){
+    if(used.has(candidate.url))continue;
+    if(await imageLoads(candidate.url))return candidate.url;
+   }
   }catch(error){console.warn('Rasm qidirish xatosi:',query,error)}
  }
  return '';
 }
 async function withImages(slides,topic){
- const normalized=slides.slice(0,20).map(s=>({title:String(s.title||s.heading||'Slayd'),body:String(s.body||s.content||s.text||''),imageQuery:String(s.imageQuery||s.image_query||s.visualQuery||''),imageUrl:s.imageUrl||s.image_url||''}));
- const used=new Set();
- // Ketma-ket qidirish takroriy rasmlarning oldini oladi.
- for(const slide of normalized){
-  slide.imageUrl=slide.imageUrl||await findSlideImage(slide.title,topic,slide.body,used,slide.imageQuery);
-  if(slide.imageUrl)used.add(slide.imageUrl);
+ const normalized=slides.slice(0,20).map(s=>({title:String(s.title||s.heading||'Slayd'),body:String(s.body||s.content||s.text||''),imageQuery:String(s.imageQuery||s.image_query||s.visualQuery||''),imageUrl:s.imageUrl||s.image_url||s.image||''}));
+ const used=new Set();let photos=0,illustrations=0;
+ for(let i=0;i<normalized.length;i++){
+  const slide=normalized[i];
+  if(slide.imageUrl && await imageLoads(slide.imageUrl)){used.add(slide.imageUrl);photos++;continue}
+  slide.imageUrl=await findSlideImage(slide.title,topic,slide.body,used,slide.imageQuery);
+  if(slide.imageUrl){used.add(slide.imageUrl);photos++}
+  else{slide.imageUrl=makeVisualFallback(slide.title,topic,i);illustrations++}
  }
+ console.info(`Usta Crak AI: ${photos} ta foto, ${illustrations} ta maxsus illyustratsiya.`);
  return normalized;
 }
 async function generateAI(){
@@ -133,33 +164,33 @@ async function generateAI(){
  if(decks.length>=3)return status('appStatus','Limit tugadi: ko‘pi bilan 3 ta taqdimot.','error');
  status('appStatus','AI slaydlarni tayyorlamoqda…');
  try{
-  const response=await fetch('https://usta-crak-ai.gulshankucharova94.workers.dev/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count:Number($('slideCount').value)||6,language:$('slideLang').value,detailLevel:'very_detailed',instructions:'Har bir slayd uchun mavzuga xos, takrorlanmaydigan, batafsil mazmun yoz. Har slaydda 5-7 ta aniq fikr, izoh, misol yoki sabab-natija bo‘lsin. Sarlavhalar va matnlar bir-biridan farq qilsin. Raqam va faktlarni uydirma; noaniq bo‘lsa ayt. Har bir slayd uchun imageQuery nomli inglizcha aniq rasm qidiruv iborasini ham qaytar.'})});
+  const response=await fetch('https://usta-crak-ai.gulshankucharova94.workers.dev/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,count:Number($('slideCount').value)||6,language:$('slideLang').value,detailLevel:'very_detailed',instructions:'Javobni aynan JSON ko‘rinishida qaytar: {slides:[{title,body,imageQuery}]}. So‘ralgan slaydlar sonini aynan saqla. Har bir slayd mavzuning alohida kichik jihatini ochsin; sarlavha va matnlarni takrorlama. body kamida 5 ta mazmunli punktdan iborat bo‘lsin; har bir punktda fakt/tushuncha, tushuntirish yoki misol bo‘lsin, jami kamida 700 belgi atrofida. Mavzuni aniq tushuntir, atamalarni izohla, sabab-oqibat va real misollar keltir. Mavzuga tegishli bo‘lmagan umumiy gaplarni yozma. Tasdiqlanmagan statistika yoki sanalarni uydirma. Har bir slaydga imageQuery maydonida ingliz tilida 4-8 so‘zli, aynan shu slayd mazmunidagi predmet/jarayonni tasvirlaydigan aniq qidiruv iborasini ber; barcha imageQuery lar bir-biridan farq qilsin.'})});
   const data=await response.json();
   if(!response.ok)throw new Error(data.error||'AI server xatosi');
   if(!Array.isArray(data.slides)||!data.slides.length)throw new Error('AI javobida slaydlar topilmadi.');
   status('appStatus','Slaydlar tayyor. Rasmlar qidirilmoqda…');
   const slides=await withImages(data.slides,topic);
-  const found=slides.filter(s=>s.imageUrl).length;
+  const found=slides.filter(s=>s.imageUrl&&!String(s.imageUrl).startsWith('data:image/svg+xml')).length;
+  const illustrations=slides.filter(s=>String(s.imageUrl||'').startsWith('data:image/svg+xml')).length;
   await saveDeck(topic,slides);
-  if(!statusTextIsError())status('appStatus',`${slides.length} ta slayd yaratildi va saqlandi. ${found} tasiga rasm topildi.`,'success');
+  if(!statusTextIsError()){const warnings=Array.isArray(data.quality?.warnings)?data.quality.warnings:[];status('appStatus',`${slides.length} ta slayd yaratildi: ${found} ta mos foto, ${illustrations} ta maxsus illyustratsiya.${warnings.length?' AI ogohlantirishi: '+warnings.join(' '):''}`,'success');}
  }catch(e){status('appStatus','AI xatosi: '+(e?.message||'noma’lum xatolik'),'error')}
 }
 async function addSlide(id){const d=decks.find(x=>x.id===id);if(!d)return;if(d.slides.length>=20)return alert('Limit — 20 ta slayd.');const title=prompt('Slayd sarlavhasi:');if(title===null||!title.trim())return;const body=prompt('Slayd matni:')||'';status('appStatus','Yangi slayd uchun rasm qidirilmoqda…');const added=(await withImages([{title:title.trim(),body}],d.title))[0];const {error}=await supabase.from('presentations').update({slides:[...d.slides,added],updated_at:new Date().toISOString()}).eq('id',id).eq('user_id',user.id);if(error)return status('appStatus','Slayd saqlanmadi: '+message(error),'error');await load();status('appStatus','Slayd saqlandi.','success')}
 async function repairDeckImages(id){
  const d=decks.find(x=>x.id===id);if(!d)return;
- const missing=d.slides.filter(s=>!(s.imageUrl||s.image_url||s.image));
- if(!missing.length)return status('appStatus','Bu taqdimotdagi barcha slaydlarda rasm bor.','success');
- status('appStatus',`${missing.length} ta slayd uchun rasm qidirilmoqda…`);
- const used=new Set(d.slides.map(s=>s.imageUrl||s.image_url||s.image).filter(Boolean));let found=0;
- const slides=[];
- for(const s of d.slides){
-  if(s.imageUrl||s.image_url||s.image){slides.push(s);continue}
+ status('appStatus','Slaydlardagi rasmlar tekshirilmoqda…');
+ const used=new Set(),slides=[];let found=0,illustrations=0;
+ for(let i=0;i<d.slides.length;i++){
+  const s=d.slides[i],current=s.imageUrl||s.image_url||s.image||'';
+  if(current&&!String(current).startsWith('data:image/svg+xml')&&await imageLoads(current)){used.add(current);slides.push({...s,imageUrl:current});found++;continue}
   const url=await findSlideImage(s.title,d.title,s.body,used,s.imageQuery||s.image_query||s.visualQuery||'');
-  if(url){used.add(url);found++;slides.push({...s,imageUrl:url})}else slides.push(s);
+  if(url){used.add(url);slides.push({...s,imageUrl:url});found++}
+  else{slides.push({...s,imageUrl:makeVisualFallback(s.title,d.title,i)});illustrations++}
  }
  const {error}=await supabase.from('presentations').update({slides,updated_at:new Date().toISOString()}).eq('id',id).eq('user_id',user.id);
  if(error)return status('appStatus','Rasmlar saqlanmadi: '+message(error),'error');
- await load();status('appStatus',`${found} ta rasm qo‘shildi. ${slides.length-found} ta slayd uchun rasm topilmadi.`,found?'success':'error');
+ await load();status('appStatus',`Tekshirildi: ${found} ta foto, ${illustrations} ta maxsus illyustratsiya.`,found?'success':'error');
 }
 async function removeDeck(id){const d=decks.find(x=>x.id===id);if(!d||!confirm('“'+d.title+'” o‘chirilsinmi?'))return;const {error}=await supabase.from('presentations').delete().eq('id',id).eq('user_id',user.id);if(error)return status('appStatus','O‘chirishda xatolik: '+message(error),'error');await load()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -239,7 +270,7 @@ async function pptx(id){
   status('appStatus',`PowerPoint yuklab olindi. ${imageCount} ta rasm fayl ichiga joylandi.`+(missingImages?` ${missingImages} ta rasm qo‘shilmadi. Internetni tekshiring yoki qayta urinib ko‘ring.`:''),missingImages?'error':'success');
  }catch(e){status('appStatus','PPTX yaratishda xatolik: '+(e?.message||'noma’lum'),'error')}
 }
-function render(){$('count').textContent=decks.length+'/3';const host=$('decks');host.replaceChildren();if(!decks.length){const e=document.createElement('div');e.className='empty';e.textContent='Hali taqdimot yo‘q. Birinchi taqdimotingizni yarating.';host.append(e);return}for(const d of decks){const c=document.createElement('article');c.className='deck';const small=document.createElement('small');small.textContent=d.slides.length+'/20 slayd';const h=document.createElement('h3');h.textContent=d.title;const p=document.createElement('p');p.textContent=d.slides[0]?.body||d.slides[0]?.title||'Taqdimot tayyor';c.append(small,h,p);const list=document.createElement('div');d.slides.forEach((s,i)=>{const item=document.createElement('div');item.style.borderTop='1px solid #5279ac';item.style.paddingTop='8px';item.style.marginTop='8px';const row=document.createElement('p');row.textContent=(i+1)+'. '+s.title+(s.body?' — '+s.body:'');item.append(row);if(s.imageUrl||s.image_url||s.image){const img=document.createElement('img');img.className='slide-image';img.src=s.imageUrl||s.image_url||s.image;img.alt=s.title||'Slayd rasmi';img.loading='lazy';img.onerror=()=>img.remove();item.append(img)}list.append(item)});c.append(list);const actions=document.createElement('div');actions.className='actions';const a=document.createElement('button');a.className='secondary';a.textContent='+ Slayd';a.disabled=d.slides.length>=20;a.onclick=()=>addSlide(d.id);const b=document.createElement('button');b.className='secondary';b.textContent='PDF / Chop etish';b.onclick=()=>pdf(d.id);const x=document.createElement('button');x.className='secondary';x.textContent='PPTX yuklab olish';x.onclick=()=>pptx(d.id);const del=document.createElement('button');del.className='danger';del.textContent='O‘chirish';del.onclick=()=>removeDeck(d.id);const im=document.createElement('button');im.className='secondary';im.textContent='🖼 Rasmlarni qo‘shish / tiklash';im.onclick=()=>repairDeckImages(d.id);actions.append(a,im,b,x,del);c.append(actions);const wm=document.createElement('div');wm.className='watermark';wm.textContent='Usta Crak';c.append(wm);host.append(c)}}
+function render(){$('count').textContent=decks.length+'/3';const host=$('decks');host.replaceChildren();if(!decks.length){const e=document.createElement('div');e.className='empty';e.textContent='Hali taqdimot yo‘q. Birinchi taqdimotingizni yarating.';host.append(e);return}for(const d of decks){const c=document.createElement('article');c.className='deck';const small=document.createElement('small');small.textContent=d.slides.length+'/20 slayd';const h=document.createElement('h3');h.textContent=d.title;const p=document.createElement('p');p.textContent=d.slides[0]?.body||d.slides[0]?.title||'Taqdimot tayyor';c.append(small,h,p);const list=document.createElement('div');d.slides.forEach((s,i)=>{const item=document.createElement('div');item.style.borderTop='1px solid #5279ac';item.style.paddingTop='8px';item.style.marginTop='8px';const row=document.createElement('p');row.textContent=(i+1)+'. '+s.title+(s.body?' — '+s.body:'');item.append(row);if(s.imageUrl||s.image_url||s.image){const img=document.createElement('img');img.className='slide-image';img.src=s.imageUrl||s.image_url||s.image;img.alt=s.title||'Slayd rasmi';img.loading='lazy';img.onerror=()=>{img.remove();const note=document.createElement('small');note.textContent='Rasm yuklanmadi — “Rasmlarni qo‘shish / tiklash” tugmasini bosing.';note.style.color='#fca5a5';item.append(note)};item.append(img)}list.append(item)});c.append(list);const actions=document.createElement('div');actions.className='actions';const a=document.createElement('button');a.className='secondary';a.textContent='+ Slayd';a.disabled=d.slides.length>=20;a.onclick=()=>addSlide(d.id);const b=document.createElement('button');b.className='secondary';b.textContent='PDF / Chop etish';b.onclick=()=>pdf(d.id);const x=document.createElement('button');x.className='secondary';x.textContent='PPTX yuklab olish';x.onclick=()=>pptx(d.id);const del=document.createElement('button');del.className='danger';del.textContent='O‘chirish';del.onclick=()=>removeDeck(d.id);const im=document.createElement('button');im.className='secondary';im.textContent='🖼 Rasmlarni qo‘shish / tiklash';im.onclick=()=>repairDeckImages(d.id);actions.append(a,im,b,x,del);c.append(actions);const wm=document.createElement('div');wm.className='watermark';wm.textContent='Usta Crak';c.append(wm);host.append(c)}}
 $('login').onclick=login;$('signup').onclick=signup;$('generate').onclick=generateAI;$('templateGenerate').onclick=generateTemplate;$('logout').onclick=logout;$('create').onclick=createDeck;$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('year').textContent=new Date().getFullYear();
 supabase.auth.onAuthStateChange((_event,session)=>{const u=session?.user||null;sessionUI(u);if(u)setTimeout(load,0)});
 const {data:{session}}=await supabase.auth.getSession();if(session?.user){sessionUI(session.user);await load()}else sessionUI(null);
